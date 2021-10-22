@@ -1,0 +1,11 @@
+24.09.2021
+
+To Do: - get access to the server
+- get all notes so far up on github
+-once server + github set: start to clean data for analysis + make sure the script is understandable and filled with comments that make sense
+- read about using spatial priors and CAR errors w/rstan
+- how to model frequency of behav across UD in a defensible way w/both spatial+temporal autocorrelation + between-individual differences in space use?
+- can use ctmm for AKDE, but look at all alternatives (so far nothing comparable that’s actually easy to use)
+-Puma paper revisions
+-review for ecol+evol
+- remember to submit hormone paper
