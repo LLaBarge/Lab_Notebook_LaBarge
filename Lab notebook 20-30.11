@@ -1,0 +1,13 @@
+-Working on long-calling project and still trying to create AKDEs  
+for each individual per year. We may run into issues with not having  
+enough GPS data on individuals while still having many LCs.  
+
+New steps for creating AKDEs:
+-load ctmmweb and use the shiny application to subset the raw data by  year.
+-then create telemetry object, run movement models, and select best  by AICc
+- then create AKDEs.
+-create CDEs between males and other individuals
+(each male to each other male and female)
+-plot occurrance of LCs
+-rasterize CDEs to see if they mainly occurr in areas of high  
+encounter probability
