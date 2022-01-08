@@ -1,0 +1,17 @@
+Back from Holiday on 7.1.22
+Looked at Long call data and 2012-2015 is the time period where we can analyse spatial dist. of calls given
+Methods are to use use-availability framework (like an RSF) and use AKDEs of other individuals as prob. of encounter - 
+occurrance dist. for unflanged?
+
+Need to revise some of the geo methods - there is an issue with saving pts. in the specified CRS. Don't really know what went wrong...
+
+To do:
+Keep working on LC project - run akdes for 2012-2015, rasterize them, and create polygons of akdes for each focal individual to specifiy where "available" pts can fall
+reread the wilmers puma communication paper b/c similar methods...
+Fix georeferncing prob
+
+read baboon pred paper (second-author on this)
+work w/copy editor at Mam Rev. and notify Panthera PR when paper should be coming out...
+start writing methods for LC paper
+set up meeting time with Meg to discuss questions for georeferencing project
+
