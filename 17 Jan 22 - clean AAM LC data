@@ -1,0 +1,18 @@
+# This script is for cleaning and extracting the data I need from
+# the AAM system given to me by B. Spillman (CSV)
+setwd("O:/working/Tuanan_cleaned")
+library(readr)
+LongCalls_AAM_Spillman <- read_csv("LongCalls_AAM_Spillman.csv")
+LC_AAM<-as.data.frame(LongCalls_AAM_Spillman)
+head(LC_AAM)
+
+# create timestamp that matches the format of GPS pts and can go up on movebank
+LC_AAM$Date<-as.Date(as.character(LC_AAM$Date), format='%Y%m%d')
+LC_AAM$Year<-format(LC_AAM$Date, '%Y')
+LC_AAM$Month<-format(LC_AAM$Date, '%m')
+LC_AAM$Day<-format(LC_AAM$Date, '%d')
+
+LC_AAM$NewDate <- paste(LC_AAM$Year, LC_AAM$Month, LC_AAM$Day, sep="-")
+LC_AAM$Timestamp <- paste(LC_AAM$NewDate, LC_AAM$caller_Time)
+
+unique(LC_AAM$caller_ID.def)
