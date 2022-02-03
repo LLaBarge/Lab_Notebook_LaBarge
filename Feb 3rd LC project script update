@@ -1,0 +1,727 @@
+# script for creating AKDEs and then polygons for Long call project
+library(move)
+library(ctmm)
+library(readr)
+setwd("C:/Users/lrlab/OneDrive/Desktop/LC_Project")
+# log into movebank for file
+login <- movebankLogin(username="llabarge", password="Samango1992!")
+getMovebankStudies(login)
+
+searchMovebankStudies(x="Bornean", login=login)
+orang_study <- getMovebankData(study="Bornean Orangutan 2012-2015, Pongo pygmaeus, Tuanan, Central Kalimatan", login=login)
+
+# create as.telemetry object for ctmm models
+orangs <-as.telemetry(orang_study, projection = "+init=epsg:32750 +proj=utm +zone=50 +units=m +south")
+orangs
+#run continuous-time movement models, select the best for each individual
+# then use the best model to run autocorrelated KDEs with an error of 25m assigned
+SVF <- list()
+for(i in 1:length(orangs)){
+  print(i)
+  SVF[[i]] <- variogram(orangs[[i]])}
+names(SVF) <- names(orangs)
+
+## fit models to all animals
+FIT <- list()
+for(i in 1:length(orangs)){
+  print(i)
+  GUESS <- ctmm.guess(orangs[[i]],interactive=FALSE)
+  FIT[[i]] <- ctmm.select(orangs[[i]],GUESS,error=25, verbose=TRUE,trace=2)
+}
+names(FIT) <- names(orangs)
+FIT
+extent<-extent(211224, 258687, 9787541, 9753209)
+AKDE <- list()
+for(i in 1:length(orangs)){
+  print(i)
+  AKDE[[i]] <- akde(orangs[[i]],FIT[[i]][[1]], grid=list(extent=extent,dr=25))
+}
+names(AKDE) <- names(orangs)
+
+save(AKDE, file="LC_AKDEs.rda")
+load(file="LC_AKDEs.rda")
+View(AKDE)
+AKDE[["X2012.Juni"]]
+
+
+
+#check plot of one just to make sure things look OK
+sp::plot(AKDE[["X2012.Juni"]])
+
+# export rasters with cummulative distribution
+# create separate per individual/year to keep track
+rastlist<- lapply(AKDE, function(X) raster(X))
+rastlist
+
+save(rastlist, file="rastlist.rda")
+load(file="rastlist.rda")
+#create individual files
+
+Chili_2012_rast <- rastlist$X2012.Chili
+Dayak_2012_rast<-rastlist$X2012.Dayak
+Desy_2012_rast<-rastlist$X2012.Desy
+Helium_2012_rast<-rastlist[["X2012.Helium"]]
+Henk_2012_rast<-rastlist[["X2012.Henk"]]
+Jinak_2012_rast<-rastlist[["X2012.Jinak"]]
+Juni_2012_rast<-rastlist[["X2012.Juni"]]
+Katmandun_2012_rast<-rastlist[["X2012.Katmandun"]]
+Kerry_2012_rast<-rastlist[["X2012.Kerry"]]
+Kondor_2012_rast<-rastlist[["X2012.Kondor"]]
+Mindy_2012_rast<-rastlist[["X2012.Mindy"]]
+Niko_2012_rast<-rastlist[["X2012.Niko"]]
+Otto_2012_rast<-rastlist[["X2012.Otto"]]
+Preman_2012_rast<-rastlist[["X2012.Preman"]]
+Teju_2012_rast<-rastlist[["X2012.Teju"]]
+Tomi_2012_rast<-rastlist[["X2012.Tomi"]]
+Wodan_2012_rast<-rastlist[["X2012.Wodan"]]
+Bobo_2013_rast<-rastlist[["X2013.Bobo"]]
+Chaz_2013_rast<-rastlist[["X2013.Chaz"]]
+Cinta_2013_rast<-rastlist[["X2013.Cinta"]]
+Dayak_2013_rast<-rastlist[["X2013.Dayak"]]
+Desy_2013_rast<-rastlist[["X2013.Desy"]]
+Flunmu_2013_rast<-rastlist[["X2013.Flunmu"]]
+Helium_2013_rast<-rastlist[["X2013.Helium"]]
+Henk_2013_rast<-rastlist[["X2013.Henk"]]
+Inul_2013_rast<-rastlist[["X2013.Inul"]]
+Jinak_2013_rast<-rastlist[["X2013.Jinak"]]
+Juni_2013_rast<-rastlist[["X2013.Juni"]]
+Kerry_2013_rast<-rastlist[["X2013.Kerry"]]
+Kondor_2013_rast<-rastlist[["X2013.Kondor"]]
+Manggo_2013_rast<-rastlist[["X2013.Manggo"]]
+Mindy_2013_rast<-rastlist[["X2013.Mindy"]]
+Niko_2013_rast<-rastlist[["X2013.Niko"]]
+Otto_2013_rast<-rastlist[["X2013.Otto"]]
+Sidony_2013_rast<-rastlist[["X2013.Sidony"]]
+Talia_2013_rast<-rastlist[["X2013.Talia"]]
+Teju_2013_rast<-rastlist[["X2013.Teju"]]
+Tomi_2013_rast<-rastlist[["X2013.Tomi"]]
+Wodan_2013_rast<-rastlist[["X2013.Wodan"]]
+Cinta_2014_rast<-rastlist[["X2014.Cinta"]]
+Dayak_2014_rast<-rastlist[["X2014.Dayak"]]
+Desy_2014_rast<-rastlist[["X2014.Desy"]]
+Guapo_2014_rast<-rastlist[["X2014.Guapo"]]
+Helium_2014_rast<-rastlist[["X2014.Helium"]]
+Henk_2014_rast<-rastlist[["X2014.Henk"]]
+Inul_2014_rast<-rastlist[["X2014.Inul"]]
+Jinak_2014_rast<-rastlist[["X2014.Jinak"]]
+Juni_2014_rast<-rastlist[["X2014.Juni"]]
+Kerry_2014_rast<-rastlist[["X2014.Kerry"]]
+Katmandun_2014_rast<-rastlist[["X2014.Katmandun"]]
+Kondor_2014_rast<-rastlist[["X2014.Kondor"]]
+Manggo_2014_rast<-rastlist[["X2014.Manggo"]]
+Mindy_2014_rast<-rastlist[["X2014.Mindy"]]
+Niko_2014_rast<-rastlist[["X2014.Niko"]]
+Otto_2014_rast<-rastlist[["X2014.Otto"]]
+Sidony_2014_rast<-rastlist[["X2014.Sidony"]]
+Sugus_2014_rast<-rastlist[["X2014.Sugus"]]
+Tarzan_2014_rast<-rastlist[["X2014.Tarzan"]]
+Tomi_2014_rast<-rastlist[["X2014.Tomi"]]
+Wodan_2014_rast<-rastlist[["X2014.Wodan"]]
+Cinta_2015_rast<-rastlist[["X2015.Cinta"]]
+Dayak_2015_rast<-rastlist[["X2015.Dayak"]]
+Desy_2015_rast<-rastlist[["X2015.Desy"]]
+Ekko_2015_rast<-rastlist[["X2015.Ekko"]]
+Gizmo_2015_rast<-rastlist[["X2015.Gizmo"]]
+Helium_2015_rast<-rastlist[["X2015.Helium"]]
+Inul_2015_rast<-rastlist[["X2015.Inul"]]
+Jinak_2015_rast<-rastlist[["X2015.Jinak"]]
+Juni_2015_rast<-rastlist[["X2015.Juni"]]
+Kerry_2015_rast<-rastlist[["X2015.Kerry"]]
+Kondor_2015_rast<-rastlist[["X2015.Kondor"]]
+Niko_2015_rast<-rastlist[["X2015.Niko"]]
+Otto_2015_rast<-rastlist[["X2015.Otto"]]
+Pinky_2015_rast<-rastlist[["X2015.Pinky"]]
+Sugus_2015_rast<-rastlist[["X2015.Sugus"]]
+Tomi_2015_rast<-rastlist[["X2015.Tomi"]]
+Tina_2015_rast<-rastlist[["X2015.Tina"]]
+Teju_2015_rast<-rastlist[["X2015.Teju"]]
+Tuko_2015_rast<-rastlist[["X2015.Tuko"]]
+Wodan_2015_rast<-rastlist[["X2015.Wodan"]]
+
+
+# create polygons of the focal males for random points
+View(AKDE)
+CRS<-CRS("+init=epsg:32750 +proj=utm +zone=50 +units=m +south")
+
+Chili_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Chili"]],level.UD=0.95, proj4string=CRS)
+Chili_2012_avail<-spsample(Chili_2012_spPoly@polygons$`2012-Chili 95% est`,n=290,"random", proj4string=CRS)
+
+Chili_2012_avail_pts<-as.data.frame(Chili_2012_avail)
+ID<-rep("Chili_2012_avail",times=290)
+PT<-rep("Available",times=290)
+Timestamp<-rep("NA", times=290)
+Chili_2012_avail_pts$Timestamp<-Timestamp
+Chili_2012_avail_pts$ID<-ID
+Chili_2012_avail_pts$PT<-PT
+save(Chili_2012_avail_pts, file="Chili_2012_avail_pts.rda")
+write.csv(Chili_2012_avail_pts, "Chili_2012_avail_pts.csv")
+
+Dayak_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Dayak"]],level.UD=0.95, proj4string=CRS)
+Dayak_2012_avail<-spsample(Dayak_2012_spPoly@polygons$`2012-Dayak 95% est`,n=810,"random", proj4string=CRS)
+
+Dayak_2012_avail_pts<-as.data.frame(Dayak_2012_avail)
+ID<-rep("Dayak_2012_avail",times=810)
+PT<-rep("Available",times=810)
+Timestamp<-rep("NA", times=810)
+Dayak_2012_avail_pts$Timestamp<-Timestamp
+Dayak_2012_avail_pts$ID<-ID
+Dayak_2012_avail_pts$PT<-PT
+save(Dayak_2012_avail_pts, file="Dayak_2012_avail_pts.rda")
+write.csv(Dayak_2012_avail_pts, "Dayak_2012_avail_pts.csv")
+
+Helium_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Helium"]],level.UD=0.95, proj4string=CRS)
+Helium_2012_avail<-spsample(Helium_2012_spPoly@polygons$`2012-Helium 95% est`,n=1470,"random", proj4string=CRS)
+
+Helium_2012_avail_pts<-as.data.frame(Helium_2012_avail)
+ID<-rep("Helium_2012_avail",times=1470)
+PT<-rep("Available",times=1470)
+Timestamp<-rep("NA", times=1470)
+Helium_2012_avail_pts$Timestamp<-Timestamp
+Helium_2012_avail_pts$ID<-ID
+Helium_2012_avail_pts$PT<-PT
+save(Helium_2012_avail_pts, file="Helium_2012_avail_pts.rda")
+write.csv(Helium_2012_avail_pts, "Helium_2012_avail_pts.csv")
+
+Henk_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Henk"]],level.UD=0.95, proj4string=CRS)
+Henk_2012_avail<-spsample(Henk_2012_spPoly@polygons$`2012-Henk 95% est`,n=975,"random", proj4string=CRS)
+
+Henk_2012_avail_pts<-as.data.frame(Henk_2012_avail)
+ID<-rep("Henk_2012_avail",times=975)
+PT<-rep("Available",times=975)
+Timestamp<-rep("NA", times=975)
+Henk_2012_avail_pts$Timestamp<-Timestamp
+Henk_2012_avail_pts$ID<-ID
+Henk_2012_avail_pts$PT<-PT
+save(Henk_2012_avail_pts, file="Henk_2012_avail_pts.rda")
+write.csv(Henk_2012_avail_pts, "Henk_2012_avail_pts.csv")
+
+Katmandun_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Katmandun"]],level.UD=0.95, proj4string=CRS)
+Katmandun_2012_avail<-spsample(Katmandun_2012_spPoly@polygons$`2012-Katmandun 95% est`,n=490,"random", proj4string=CRS)
+
+Katmandun_2012_avail_pts<-as.data.frame(Katmandun_2012_avail)
+ID<-rep("Katmandun_2012_avail",times=490)
+PT<-rep("Available",times=490)
+Timestamp<-rep("NA", times=490)
+Katmandun_2012_avail_pts$Timestamp<-Timestamp
+Katmandun_2012_avail_pts$ID<-ID
+Katmandun_2012_avail_pts$PT<-PT
+save(Katmandun_2012_avail_pts, file="Katmandun_2012_avail_pts.rda")
+write.csv(Katmandun_2012_avail_pts, "Katmandun_2012_avail_pts.csv")
+
+Niko_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Niko"]],level.UD=0.95, proj4string=CRS)
+Niko_2012_avail<-spsample(Niko_2012_spPoly@polygons$`2012-Niko 95% est`,n=1200,"random", proj4string=CRS)
+
+Niko_2012_avail_pts<-as.data.frame(Niko_2012_avail)
+ID<-rep("Niko_2012_avail",times=1200)
+PT<-rep("Available",times=1200)
+Timestamp<-rep("NA", times=1200)
+Niko_2012_avail_pts$Timestamp<-Timestamp
+Niko_2012_avail_pts$ID<-ID
+Niko_2012_avail_pts$PT<-PT
+save(Niko_2012_avail_pts, file="Niko_2012_avail_pts.rda")
+write.csv(Niko_2012_avail_pts, "Niko_2012_avail_pts.csv")
+
+Otto_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Otto"]],level.UD=0.95, proj4string=CRS)
+Otto_2012_avail<-spsample(Otto_2012_spPoly@polygons$`2012-Otto 95% est`,n=375,"random", proj4string=CRS)
+
+Otto_2012_avail_pts<-as.data.frame(Otto_2012_avail)
+ID<-rep("Otto_2012_avail",times=375)
+PT<-rep("Available",times=375)
+Timestamp<-rep("NA", times=375)
+Otto_2012_avail_pts$Timestamp<-Timestamp
+Otto_2012_avail_pts$ID<-ID
+Otto_2012_avail_pts$PT<-PT
+save(Otto_2012_avail_pts, file="Otto_2012_avail_pts.rda")
+write.csv(Otto_2012_avail_pts, "Otto_2012_avail_pts.csv")
+
+Preman_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Preman"]],level.UD=0.95, proj4string=CRS)
+Preman_2012_avail<-spsample(Preman_2012_spPoly@polygons$`2012-Preman 95% est`,n=675,"random", proj4string=CRS)
+
+Preman_2012_avail_pts<-as.data.frame(Preman_2012_avail)
+ID<-rep("Preman_2012_avail",times=675)
+PT<-rep("Available",times=675)
+Timestamp<-rep("NA", times=675)
+Preman_2012_avail_pts$Timestamp<-Timestamp
+Preman_2012_avail_pts$ID<-ID
+Preman_2012_avail_pts$PT<-PT
+save(Preman_2012_avail_pts, file="Preman_2012_avail_pts.rda")
+write.csv(Preman_2012_avail_pts, "Preman_2012_avail_pts.csv")
+
+Teju_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Teju"]],level.UD=0.95, proj4string=CRS)
+Teju_2012_avail<-spsample(Teju_2012_spPoly@polygons$`2012-Teju 95% est`,n=1120,"random", proj4string=CRS)
+
+Teju_2012_avail_pts<-as.data.frame(Teju_2012_avail)
+ID<-rep("Teju_2012_avail",times=1120)
+PT<-rep("Available",times=1120)
+Timestamp<-rep("NA", times=1120)
+Teju_2012_avail_pts$Timestamp<-Timestamp
+Teju_2012_avail_pts$ID<-ID
+Teju_2012_avail_pts$PT<-PT
+save(Teju_2012_avail_pts, file="Teju_2012_avail_pts.rda")
+write.csv(Teju_2012_avail_pts, "Teju_2012_avail_pts.csv")
+
+Tomi_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Tomi"]],level.UD=0.95, proj4string=CRS)
+Tomi_2012_avail<-spsample(Tomi_2012_spPoly@polygons$`2012-Tomi 95% est`,n=1750,"random", proj4string=CRS)
+
+Tomi_2012_avail_pts<-as.data.frame(Tomi_2012_avail)
+ID<-rep("Tomi_2012_avail",times=1750)
+PT<-rep("Available",times=1750)
+Timestamp<-rep("NA", times=1750)
+Tomi_2012_avail_pts$Timestamp<-Timestamp
+Tomi_2012_avail_pts$ID<-ID
+Tomi_2012_avail_pts$PT<-PT
+save(Tomi_2012_avail_pts, file="Tomi_2012_avail_pts.rda")
+write.csv(Tomi_2012_avail_pts, "Tomi_2012_avail_pts.csv")
+
+Wodan_2012_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2012.Wodan"]],level.UD=0.95, proj4string=CRS)
+Wodan_2012_avail<-spsample(Wodan_2012_spPoly@polygons$`2012-Wodan 95% est`,n=5400,"random", proj4string=CRS)
+
+Wodan_2012_avail_pts<-as.data.frame(Wodan_2012_avail)
+ID<-rep("Chaz_2012_avail",times=5400)
+PT<-rep("Available",times=5400)
+Timestamp<-rep("NA", times=5400)
+Wodan_2012_avail_pts$Timestamp<-Timestamp
+Wodan_2012_avail_pts$ID<-ID
+Wodan_2012_avail_pts$PT<-PT
+save(Wodan_2012_avail_pts, file="Wodan_2012_avail_pts.rda")
+write.csv(Wodan_2012_avail_pts, "Wodan_2012_avail_pts.csv")
+
+Chaz_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Chaz"]],level.UD=0.95, proj4string=CRS)
+Chaz_2013_avail<-spsample(Chaz_2013_spPoly@polygons$`2013-Chaz 95% est`,n=225,"random", proj4string=CRS)
+
+Chaz_2013_avail_pts<-as.data.frame(Chaz_2013_avail)
+ID<-rep("Chaz_2013_avail",times=225)
+PT<-rep("Available",times=225)
+Timestamp<-rep("NA", times=225)
+Chaz_2013_avail_pts$Timestamp<-Timestamp
+Chaz_2013_avail_pts$ID<-ID
+Chaz_2013_avail_pts$PT<-PT
+save(Chaz_2013_avail_pts, file="Chaz_2013_avail_pts.rda")
+write.csv(Chaz_2013_avail_pts, "Chaz_2013_avail_pts.csv")
+
+Dayak_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Dayak"]],level.UD=0.95, proj4string=CRS)
+Dayak_2013_avail<-spsample(Dayak_2013_spPoly@polygons$`2013-Dayak 95% est`,n=175,"random", proj4string=CRS)
+
+Dayak_2013_avail_pts<-as.data.frame(Dayak_2013_avail)
+ID<-rep("Flunmu_2013_avail",times=175)
+PT<-rep("Available",times=175)
+Timestamp<-rep("NA", times=175)
+Dayak_2013_avail_pts$Timestamp<-Timestamp
+Dayak_2013_avail_pts$ID<-ID
+Dayak_2013_avail_pts$PT<-PT
+save(Dayak_2013_avail_pts, file="Dayak_2013_avail_pts.rda")
+write.csv(Dayak_2013_avail_pts, "Dayak_2013_avail_pts.csv")
+
+Flunmu_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Flunmu"]],level.UD=0.95, proj4string=CRS)
+Flunmu_2013_avail<-spsample(Flunmu_2013_spPoly@polygons$`2013-Flunmu 95% est`,n=175,"random", proj4string=CRS)
+
+Flunmu_2013_avail_pts<-as.data.frame(Flunmu_2013_avail)
+ID<-rep("Flunmu_2013_avail",times=175)
+PT<-rep("Available",times=175)
+Timestamp<-rep("NA", times=175)
+Flunmu_2013_avail_pts$Timestamp<-Timestamp
+Flunmu_2013_avail_pts$ID<-ID
+Flunmu_2013_avail_pts$PT<-PT
+save(Flunmu_2013_avail_pts, file="Flunmu_2013_avail_pts.rda")
+write.csv(Flunmu_2013_avail_pts, "Flunmu_2013_avail_pts.csv")
+
+Helium_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Helium"]],level.UD=0.95, proj4string=CRS)
+Helium_2013_avail<-spsample(Helium_2013_spPoly@polygons$`2013-Helium 95% est`,n=150,"random", proj4string=CRS)
+
+Helium_2013_avail_pts<-as.data.frame(Helium_2013_avail)
+ID<-rep("Helium_2013_avail",times=150)
+PT<-rep("Available",times=150)
+Timestamp<-rep("NA", times=150)
+Helium_2013_avail_pts$Timestamp<-Timestamp
+Helium_2013_avail_pts$ID<-ID
+Helium_2013_avail_pts$PT<-PT
+save(Helium_2013_avail_pts, file="Helium_2013_avail_pts.rda")
+write.csv(Helium_2013_avail_pts, "Helium_2013_avail_pts.csv")
+
+Henk_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Henk"]],level.UD=0.95, proj4string=CRS)
+Henk_2013_avail<-spsample(Henk_2013_spPoly@polygons$`2013-Henk 95% est`,n=250,"random", proj4string=CRS)
+
+Henk_2013_avail_pts<-as.data.frame(Henk_2013_avail)
+ID<-rep("Henk_2013_avail",times=250)
+PT<-rep("Available",times=250)
+Timestamp<-rep("NA", times=250)
+Henk_2013_avail_pts$Timestamp<-Timestamp
+Henk_2013_avail_pts$ID<-ID
+Henk_2013_avail_pts$PT<-PT
+save(Henk_2013_avail_pts, file="Henk_2013_avail_pts.rda")
+write.csv(Henk_2013_avail_pts, "Henk_2013_avail_pts.csv")
+
+Niko_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Niko"]],level.UD=0.95, proj4string=CRS)
+Niko_2013_avail<-spsample(Niko_2013_spPoly@polygons$`2013-Niko 95% est`,n=205,"random", proj4string=CRS)
+
+Niko_2013_avail_pts<-as.data.frame(Niko_2013_avail)
+ID<-rep("Niko_2013_avail",times=205)
+PT<-rep("Available",times=205)
+Timestamp<-rep("NA", times=205)
+Niko_2013_avail_pts$Timestamp<-Timestamp
+Niko_2013_avail_pts$ID<-ID
+Niko_2013_avail_pts$PT<-PT
+save(Niko_2013_avail_pts, file="Niko_2013_avail_pts.rda")
+write.csv(Niko_2013_avail_pts, "Niko_2013_avail_pts.csv")
+
+Teju_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Teju"]],level.UD=0.95, proj4string=CRS)
+Teju_2013_avail<-spsample(Teju_2013_spPoly@polygons$`2013-Teju 95% est`,n=150,"random", proj4string=CRS)
+
+Teju_2013_avail_pts<-as.data.frame(Teju_2013_avail)
+ID<-rep("Teju_2013_avail",times=150)
+PT<-rep("Available",times=150)
+Timestamp<-rep("NA", times=150)
+Teju_2013_avail_pts$Timestamp<-Timestamp
+Teju_2013_avail_pts$ID<-ID
+Teju_2013_avail_pts$PT<-PT
+save(Teju_2013_avail_pts, file="Teju_2013_avail_pts.rda")
+write.csv(Teju_2013_avail_pts, "Teju_2013_avail_pts.csv")
+
+Wodan_2013_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2013.Wodan"]],level.UD=0.95, proj4string=CRS)
+Wodan_2013_avail<-spsample(Wodan_2013_spPoly@polygons$`2013-Wodan 95% est`,n=405,"random", proj4string=CRS)
+
+Wodan_2013_avail_pts<-as.data.frame(Wodan_2013_avail)
+ID<-rep("Wodan_2013_avail",times=405)
+PT<-rep("Available",times=405)
+Timestamp<-rep("NA", times=405)
+Wodan_2013_avail_pts$Timestamp<-Timestamp
+Wodan_2013_avail_pts$ID<-ID
+Wodan_2013_avail_pts$PT<-PT
+save(Wodan_2013_avail_pts, file="Wodan_2013_avail_pts.rda")
+write.csv(Wodan_2013_avail_pts, "Wodan_2013_avail_pts.csv")
+
+
+
+Helium_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Helium"]],level.UD=0.95, proj4string=CRS)
+Helium_2014_avail<-spsample(Helium_2014_spPoly@polygons$`2014-Helium 95% est`,n=250,"random", proj4string=CRS)
+
+Helium_2014_avail_pts<-as.data.frame(Helium_2014_avail)
+ID<-rep("Helium_2014_avail",times=250)
+PT<-rep("Available",times=250)
+Timestamp<-rep("NA", times=250)
+Helium_2014_avail_pts$Timestamp<-Timestamp
+Helium_2014_avail_pts$ID<-ID
+Helium_2014_avail_pts$PT<-PT
+save(Helium_2014_avail_pts, file="Helium_2014_avail_pts.rda")
+write.csv(Helium_2014_avail_pts, "Helium_2014_avail_pts.csv")
+
+Henk_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Henk"]],level.UD=0.95, proj4string=CRS)
+Henk_2014_avail<-spsample(Henk_2014_spPoly@polygons$`2014-Henk 95% est`,n=400,"random", proj4string=CRS)
+
+Henk_2014_avail_pts<-as.data.frame(Henk_2014_avail)
+ID<-rep("Henk_2014_avail",times=400)
+PT<-rep("Available",times=400)
+Timestamp<-rep("NA", times=400)
+Henk_2014_avail_pts$Timestamp<-Timestamp
+Henk_2014_avail_pts$ID<-ID
+Henk_2014_avail_pts$PT<-PT
+save(Henk_2014_avail_pts, file="Henk_2014_avail_pts.rda")
+write.csv(Henk_2014_avail_pts, "Henk_2014_avail_pts.csv")
+
+Niko_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Niko"]],level.UD=0.95, proj4string=CRS)
+Niko_2014_avail<-spsample(Niko_2014_spPoly@polygons$`2014-Niko 95% est`,n=155,"random", proj4string=CRS)
+
+Niko_2014_avail_pts<-as.data.frame(Niko_2014_avail)
+ID<-rep("Niko_2014_avail",times=155)
+PT<-rep("Available",times=155)
+Timestamp<-rep("NA", times=155)
+Niko_2014_avail_pts$Timestamp<-Timestamp
+Niko_2014_avail_pts$ID<-ID
+Niko_2014_avail_pts$PT<-PT
+save(Niko_2014_avail_pts, file="Niko_2014_avail_pts.rda")
+write.csv(Niko_2014_avail_pts, "Niko_2014_avail_pts.csv")
+
+Otto_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Otto"]],level.UD=0.95, proj4string=CRS)
+Otto_2014_avail<-spsample(Otto_2014_spPoly@polygons$`2014-Otto 95% est`,n=325,"random", proj4string=CRS)
+
+Otto_2014_avail_pts<-as.data.frame(Otto_2014_avail)
+ID<-rep("Otto_2014_avail",times=325)
+PT<-rep("Available",times=325)
+Timestamp<-rep("NA", times=325)
+Otto_2014_avail_pts$Timestamp<-Timestamp
+Otto_2014_avail_pts$ID<-ID
+Otto_2014_avail_pts$PT<-PT
+save(Otto_2014_avail_pts, file="Otto_2014_avail_pts.rda")
+write.csv(Otto_2014_avail_pts, "Otto_2014_avail_pts.csv")
+
+Tomi_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Tomi"]],level.UD=0.95, proj4string=CRS)
+Tomi_2014_avail<-spsample(Tomi_2014_spPoly@polygons$`2014-Tomi 95% est`,n=255,"random", proj4string=CRS)
+
+Tomi_2014_avail_pts<-as.data.frame(Tomi_2014_avail)
+ID<-rep("Tomi_2014_avail",times=255)
+PT<-rep("Available",times=255)
+Timestamp<-rep("NA", times=255)
+Tomi_2014_avail_pts$Timestamp<-Timestamp
+Tomi_2014_avail_pts$ID<-ID
+Tomi_2014_avail_pts$PT<-PT
+save(Tomi_2014_avail_pts, file="Tomi_2014_avail_pts.rda")
+write.csv(Tomi_2014_avail_pts, "Tomi_2014_avail_pts.csv")
+
+Wodan_2014_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2014.Wodan"]],level.UD=0.95, proj4string=CRS)
+Wodan_2014_avail<-spsample(Wodan_2014_spPoly@polygons$`2014-Wodan 95% est`,n=395,"random", proj4string=CRS)
+
+Wodan_2014_avail_pts<-as.data.frame(Wodan_2014_avail)
+ID<-rep("Wodan_2014_avail",times=395)
+PT<-rep("Available",times=395)
+Timestamp<-rep("NA", times=395)
+Wodan_2014_avail_pts$Timestamp<-Timestamp
+Wodan_2014_avail_pts$ID<-ID
+Wodan_2014_avail_pts$PT<-PT
+save(Wodan_2014_avail_pts, file="Wodan_2014_avail_pts.rda")
+write.csv(Wodan_2014_avail_pts, "Wodan_2014_avail_pts.csv")
+
+
+Niko_2015_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2015.Niko"]],level.UD=0.95, proj4string=CRS)
+Niko_2015_avail<-spsample(Niko_2015_spPoly@polygons$`2015-Niko 95% est`,n=390,"random", proj4string=CRS)
+
+Niko_2015_avail_pts<-as.data.frame(Niko_2015_avail)
+ID<-rep("Niko_2015_avail_2015",times=390)
+PT<-rep("Available",times=390)
+Timestamp<-rep("NA", times=390)
+Niko_2015_avail_pts$Timestamp<-Timestamp
+Niko_2015_avail_pts$ID<-ID
+Niko_2015_avail_pts$PT<-PT
+save(Niko_2015_avail_pts, file="Niko_2015_avail_pts.rda")
+write.csv(Niko_2015_avail_pts, "Niko_2015_avail_pts.csv")
+
+Otto_2015_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2015.Otto"]],level.UD=0.95, proj4string=CRS)
+Otto_2015_avail<-spsample(Otto_2015_spPoly@polygons$`2015-Otto 95% est`,n=150,"random", proj4string=CRS)
+
+Otto_2015_avail_pts<-as.data.frame(Otto_2015_avail)
+ID<-rep("Otto_2015_avail_2015",times=150)
+PT<-rep("Available",times=150)
+Timestamp<-rep("NA", times=150)
+Otto_2015_avail_pts$Timestamp<-Timestamp
+Otto_2015_avail_pts$ID<-ID
+Otto_2015_avail_pts$PT<-PT
+save(Otto_2015_avail_pts, file="Otto_2015_avail_pts.rda")
+write.csv(Otto_2015_avail_pts, "Otto_2015_avail_pts.csv")
+
+Sugus_2015_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2015.Sugus"]],level.UD=0.95, proj4string=CRS)
+Sugus_2015_avail<-spsample(Sugus_2015_spPoly@polygons$`2015-Sugus 95% est`,n=165,"random", proj4string=CRS)
+
+Sugus_2015_avail_pts<-as.data.frame(Sugus_2015_avail)
+ID<-rep("Sugus_2015",times=165)
+PT<-rep("Available",times=165)
+Timestamp<-rep("NA", times=165)
+Sugus_2015_avail_pts$Timestamp<-Timestamp
+Sugus_2015_avail_pts$ID<-ID
+Sugus_2015_avail_pts$PT<-PT
+save(Sugus_2015_avail_pts, file="Sugus_2015_avail_pts.rda")
+write.csv(Sugus_2015_avail_pts, "Sugus_2015_avail_pts.csv")
+
+Tomi_2015_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2015.Tomi"]],level.UD=0.95, proj4string=CRS)
+Tomi_2015_avail<-spsample(Tomi_2015_spPoly@polygons$`2015-Tomi 95% est`,n=635,"random", proj4string=CRS)
+
+Tomi_2015_avail_pts<-as.data.frame(Tomi_2015_avail)
+ID<-rep("Tomi_2015",times=635)
+PT<-rep("Available",times=635)
+Timestamp<-rep("NA", times=635)
+Tomi_2015_avail_pts$Timestamp<-Timestamp
+Tomi_2015_avail_pts$ID<-ID
+Tomi_2015_avail_pts$PT<-PT
+save(Tomi_2015_avail_pts, file="Tomi_2015_avail_pts.rda")
+write.csv(Tomi_2015_avail_pts, "Tomi_2015_avail_pts.csv")
+head(Tomi_2012_avail_pts)
+Wodan_2015_spPoly<-SpatialPolygonsDataFrame.UD(AKDE[["X2015.Wodan"]],level.UD=0.95, proj4string=CRS)
+Wodan_2015_avail<-spsample(Wodan_2015_spPoly@polygons$`2015-Wodan 95% est`,n=835,"random", proj4string=CRS)
+head(Wodan_2015_avail_pts)
+Wodan_2015_avail_pts<-as.data.frame(Wodan_2015_avail)
+ID<-rep("Wodan_2015",times=835)
+PT<-rep("Available",times=835)
+Timestamp<-rep("NA", times=835)
+Wodan_2015_avail_pts$Timestamp<-Timestamp
+Wodan_2015_avail_pts$ID<-ID
+Wodan_2015_avail_pts$PT<-PT
+save(Wodan_2015_avail_pts, file="Wodan_2015_avail_pts.rda")
+write.csv(Wodan_2015_avail_pts, "Wodan_2015_avail_pts.csv")
+head(Wodan_2015_avail_pts)
+
+# join available pts into a single data frame
+
+Avail_pts<-rbind(Wodan_2015_avail_pts,Tomi_2015_avail_pts,Sugus_2015_avail_pts,Niko_2015_avail_pts,Otto_2015_avail_pts, Wodan_2014_avail_pts, Tomi_2014_avail_pts, Otto_2014_avail_pts, Niko_2014_avail_pts, Henk_2014_avail_pts, Helium_2014_avail_pts, Wodan_2013_avail_pts, Teju_2013_avail_pts,Niko_2013_avail_pts, Henk_2013_avail_pts, Helium_2013_avail_pts,Flunmu_2013_avail_pts, Dayak_2013_avail_pts, Chaz_2013_avail_pts, Wodan_2012_avail_pts, Tomi_2012_avail_pts, Teju_2012_avail_pts, Preman_2012_avail_pts, Otto_2012_avail_pts, Niko_2012_avail_pts, Katmandun_2012_avail_pts, Chili_2012_avail_pts, Henk_2012_avail_pts, Helium_2012_avail_pts, Dayak_2012_avail_pts)
+Avail_pts
+unique(Avail_pts$ID)
+Avail_pts$ID <- gsub("Niko_2015_avail_2015", "Niko_2015", Avail_pts$ID)
+Avail_pts$ID <- gsub("Otto_2015_avail_2015", "Otto_2015", Avail_pts$ID)
+Avail_pts$ID <- gsub("Wodan_2014_avail", "Wodan_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Otto_2014_avail", "Otto_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Tomi_2014_avail" , "Tomi_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Niko_2014_avail" , "Niko_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Henk_2014_avail" , "Henk_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Helium_2014_avail" , "Helium_2014", Avail_pts$ID)
+Avail_pts$ID <- gsub("Wodan_2013_avai" , "Wodan_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Teju_2013_avail" , "Teju_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Henk_2013_avail" , "Henk_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Niko_2013_avail", "Niko_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Helium_2013_avail" , "Teju_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Chaz_2013_avail" , "Chaz_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Flunmu_2013_avail", "Flunmu_2013", Avail_pts$ID)
+Avail_pts$ID <- gsub("Chaz_2012_avail", "Chaz_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Tomi_2012_avail", "Tomi_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Teju_2012_avail", "Teju_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Otto_2012_avail", "Otto_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Niko_2012_avail", "Niko_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Katmandun_2012_avail", "Katmandun_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Chili_2012_avail", "Chili_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Henk_2012_avail", "Henk_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Helium_2012_avail" , "Helium_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Dayak_2012_avail", "Dayak_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Preman_2012_avail", "Preman_2012", Avail_pts$ID)
+Avail_pts$ID <- gsub("Wodan_2013l", "Wodan_2013", Avail_pts$ID)
+as.data.frame(Avail_pts)
+
+library(dplyr)
+library(stringr)
+Avail_pts$Year <- str_sub(Avail_pts$ID, -4)
+write.csv(Avail_pts, file="C:/Users/lrlab/OneDrive/Documents/Avail_pts.csv")
+
+# get long call data on movebank
+login <- movebankLogin(username="llabarge", password="Samango1992!")
+getMovebankStudies(login)
+
+searchMovebankStudies(x="Bornean", login=login)
+
+LongCalls<-getMovebankData(study="Long Calls, Bornean Orangutan, Pongo pygmaeus, Tuanan, Central Kalimatan, Indonesia", login=login)
+
+# format long call data so can be merged as "cases" along with the
+# "control" available points
+LC_tel<- as.telemetry(LongCalls, projection = "+init=epsg:32750 +proj=utm +zone=50 +south")
+LC_pts<- do.call(rbind, lapply(LC_tel, function(x) as.data.frame(x)))
+str(LC_pts)
+PT<-rep("LongCall",times=4261)
+LC_pts$PT<-PT
+View(LC_pts)
+library(stringr)
+LC_pts$Year <- str_sub(LC_pts$timestamp, start = 1L, end = 4L)
+LC_pts$Year
+LC_pts$ID <- rownames(LC_pts)
+unique(LC_pts$ID)
+LC_pts$ID<- gsub("\\..*","",LC_pts$ID)
+LC_pts$ID <- gsub("LC$", "_", LC_pts$ID)
+LC_pts$ID<-paste(LC_pts$ID,LC_pts$Year)
+write.csv(LC_pts, file="LC_pts.csv")
+
+LC_points<-LC_pts[,c("x", "y", "PT", "Year", "timestamp", "ID")]
+rownames(LC_points) <- NULL
+as.data.frame(LC_points)
+
+# Only certain individuals will be included in the analysis
+# individuals with >30LC/year
+LC_points_subset<-subset(LC_points,ID %in% c('Chili_ 2012','Preman_ 2012','Niko_2012','Katmandun_2012','Henk_2012','Helium_2012','Tomi_2012','Wodan_2013','Teju_2013','Niko_2013','Henk_2013','Flunmu_2013','Chaz_2013','Tomi_2014','Otto_2014','Niko_2014' ,'Wodan_2014','Henk_2014','Helium_2014','Wodan_2015','Tomi_2015','Sugus_2015','Niko_2015','Otto_2015'))
+View(LC_points_subset)
+names(LC_points_subset)[names(LC_points_subset) == 'timestamp'] <- 'Timestamp'
+
+# bind the long calls (cases) and available pts (controls) together
+LC_com<-LC_points_subset%>% dplyr::select('ID', 'PT', 'Year', 'x', 'y')
+Av_com<-Avail_pts%>% dplyr::select('ID', 'PT', 'Year', 'x', 'y')
+
+Combined_LC_CaseCon<-rbind(LC_com, Av_com)
+as.data.frame(Combined_LC_CaseCon)
+Combined_LC_CaseCon$ID <- gsub("Preman_ 2012", "Preman_2012", Combined_LC_CaseCon$ID)
+Combined_LC_CaseCon$ID <- gsub("Chili_ 2012", "Chili_2012", Combined_LC_CaseCon$ID)
+ 
+write.csv(Combined_LC_CaseCon, file="Combined_LC_CaseCon.csv")
+
+# split dataframe by individual and year for extracting from rasters
+# will need to rbind again later
+
+
+
+# create CDE for a competition predictor variable for males
+# and a CDE for encounters with females?
+
+Comprisk_Chili_2012<-list(AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Chili_2012_MComp<-encounter(Comprisk_Chili_2012)
+
+Comprisk_Dayak_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Dayak_2012_MComp<-encounter(Comprisk_Dayak_2012)
+
+Comprisk_Preman_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Preman_2012_MComp<-encounter(Comprisk_Preman_2012)
+
+Comprisk_Katmandun_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Katmandun_2012_MComp<-encounter(Comprisk_Katmandun_2012)
+
+Comprisk_Helium_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Helium_2012_MComp<-encounter(Comprisk_Helium_2012)
+
+Comprisk_Henk_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Henk_2012_MComp<-encounter(Comprisk_Henk_2012)
+
+Comprisk_Niko_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Niko_2012_MComp<-encounter(Comprisk_Niko_2012)
+
+Comprisk_Tomi_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Tomi_2012_MComp<-encounter(Comprisk_Tomi_2012)
+
+Comprisk_Teju_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Otto"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Teju_2012_MComp<-encounter(Comprisk_Teju_2012)
+
+Comprisk_Otto_2012<-list(AKDE[["X2012.Chili"]], AKDE[["X2012.Dayak"]], AKDE[["X2012.Helium"]], AKDE[["X2012.Henk"]], AKDE[["X2012.Katmandun"]], AKDE[["X2012.Niko"]], AKDE[["X2012.Preman"]], AKDE[["X2012.Teju"]], AKDE[["X2012.Tomi"]], AKDE[["X2012.Wodan"]])
+Otto_2012_MComp<-encounter(Comprisk_Otto_2012)
+
+Comprisk_Chaz_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Flunmu"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Henk"]],AKDE[["X2013.Niko"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Teju"]],AKDE[["X2013.Tomi"]],AKDE[["X2013.Wodan"]])
+Chaz_2013_MComp<-encounter(Comprisk_Chaz_2013)
+
+Comprisk_Niko_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Chaz"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Flunmu"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Henk"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Teju"]],AKDE[["X2013.Tomi"]],AKDE[["X2013.Wodan"]])
+Chaz_2013_MComp<-encounter(Comprisk_Chaz_2013)
+
+Comprisk_Wodan_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Chaz"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Flunmu"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Henk"]],AKDE[["X2013.Niko"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Teju"]],AKDE[["X2013.Tomi"]])
+Wodan_2013_MComp<-encounter(Comprisk_Wodan_2013)
+
+Comprisk_Henk_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Chaz"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Flunmu"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Niko"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Teju"]],AKDE[["X2013.Tomi"]],AKDE[["X2013.Wodan"]])
+Henk_2013_MComp<-encounter(Comprisk_Henk_2013)
+
+Comprisk_Teju_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Chaz"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Flunmu"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Henk"]],AKDE[["X2013.Niko"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Tomi"]],AKDE[["X2013.Wodan"]])
+Teju_2013_MComp<-encounter(Comprisk_Teju_2013)
+
+Comprisk_Flunmu_2013<-list(AKDE[["X2013.Bobo"]], AKDE[["X2013.Chaz"]], AKDE[["X2013.Dayak"]], AKDE[["X2013.Helium"]],AKDE[["X2013.Henk"]],AKDE[["X2013.Niko"]],AKDE[["X2013.Otto"]],AKDE[["X2013.Teju"]],AKDE[["X2013.Tomi"]],AKDE[["X2013.Wodan"]])
+Flunmu_2013_MComp<-encounter(Comprisk_Flunmu_2013)
+
+Comprisk_Otto_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]],AKDE[["X2014.Helium"]], AKDE[["X2014.Henk"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Niko"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Tomi"]],AKDE[["X2014.Wodan"]])
+Otto_2014_MComp<-encounter(Comprisk_Otto_2014)
+
+Comprisk_Helium_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]], AKDE[["X2014.Henk"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Niko"]],AKDE[["X2014.Otto"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Tomi"]],AKDE[["X2014.Wodan"]])
+Helium_2014_MComp<-encounter(Comprisk_Helium_2014)
+
+Comprisk_Wodan_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]],AKDE[["X2014.Helium"]], AKDE[["X2014.Henk"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Niko"]],AKDE[["X2014.Otto"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Tomi"]])
+Wodan_2014_MComp<-encounter(Comprisk_Wodan_2014)
+
+Comprisk_Niko_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]],AKDE[["X2014.Helium"]], AKDE[["X2014.Henk"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Otto"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Tomi"]],AKDE[["X2014.Wodan"]])
+Niko_2014_MComp<-encounter(Comprisk_Niko_2014)
+
+Comprisk_Tomi_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]],AKDE[["X2014.Helium"]], AKDE[["X2014.Henk"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Niko"]],AKDE[["X2014.Otto"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Wodan"]])
+Tomi_2014_MComp<-encounter(Comprisk_Tomi_2014)
+
+Comprisk_Henk_2014<-list(AKDE[["X2014.Dayak"]],AKDE[["X2014.Guapo"]],AKDE[["X2014.Helium"]],AKDE[["X2014.Katmandun"]],AKDE[["X2014.Niko"]],AKDE[["X2014.Otto"]],AKDE[["X2014.Sugus"]],AKDE[["X2014.Tarzan"]],AKDE[["X2014.Tomi"]],AKDE[["X2014.Wodan"]])
+Henk_2014_MComp<-encounter(Comprisk_Henk_2014)
+
+Comprisk_Tomi_2015<-list(AKDE[["X2015.Wodan"]],AKDE[["X2015.Tuko"]],AKDE[["X2015.Teju"]],AKDE[["X2015.Otto"]],AKDE[["X2015.Niko"]],AKDE[["X2015.Sugus"]],AKDE[["X2015.Helium"]],AKDE[["X2015.Gizmo"]],AKDE[["X2015.Ekko"]],AKDE[["X2015.Dayak"]])
+Tomi_2015_MComp<-encounter(Comprisk_Tomi_2015)
+
+Comprisk_Otto_2015<-list(AKDE[["X2015.Wodan"]],AKDE[["X2015.Tuko"]],AKDE[["X2015.Tomi"]],AKDE[["X2015.Teju"]],AKDE[["X2015.Niko"]],AKDE[["X2015.Sugus"]],AKDE[["X2015.Helium"]],AKDE[["X2015.Gizmo"]],AKDE[["X2015.Ekko"]],AKDE[["X2015.Dayak"]])
+Otto_2015_MComp<-encounter(Comprisk_Otto_2015)
+
+Comprisk_Sugus_2015<-list(AKDE[["X2015.Wodan"]],AKDE[["X2015.Tuko"]],AKDE[["X2015.Tomi"]],AKDE[["X2015.Teju"]],AKDE[["X2015.Otto"]],AKDE[["X2015.Niko"]],AKDE[["X2015.Helium"]],AKDE[["X2015.Gizmo"]],AKDE[["X2015.Ekko"]],AKDE[["X2015.Dayak"]])
+Sugus_2015_MComp<-encounter(Comprisk_Sugus_2015)
+
+Comprisk_Wodan_2015<-list(AKDE[["X2015.Tuko"]],AKDE[["X2015.Tomi"]],AKDE[["X2015.Teju"]],AKDE[["X2015.Otto"]],AKDE[["X2015.Niko"]],AKDE[["X2015.Sugus"]],AKDE[["X2015.Helium"]],AKDE[["X2015.Gizmo"]],AKDE[["X2015.Ekko"]],AKDE[["X2015.Dayak"]])
+Wodan_2015_MComp<-encounter(Comprisk_Wodan_2015)
+
+Comprisk_Niko_2015<-list(AKDE[["X2015.Wodan"]],AKDE[["X2015.Tuko"]],AKDE[["X2015.Tomi"]],AKDE[["X2015.Teju"]],AKDE[["X2015.Otto"]],AKDE[["X2015.Sugus"]],AKDE[["X2015.Helium"]],AKDE[["X2015.Gizmo"]],AKDE[["X2015.Ekko"]],AKDE[["X2015.Dayak"]])
+Niko_2015_MComp<-encounter(Comprisk_Niko_2015, projection=CRS)
+
+# Conditional distributions of encounters with adult females
+
+Female_2012<-list(AKDE[["X2012.Desy"]], AKDE[["X2012.Jinak"]], AKDE[["X2015.Juni"]], AKDE[["X2012.Kerry"]], AKDE[["X2012.Kondor"]], AKDE[["X2012.Mindy"]])
+Fem_CDE_2012<-encounter(Female_2012)
+
+Female_2013<-list(AKDE[["X2013.Cinta"]], AKDE[["X2013.Desy"]], AKDE[["X2013.Inul"]], AKDE[["X2013.Jinak"]], AKDE[["X2013.Kerry"]], AKDE[["X2013.Juni"]], AKDE[["X2013.Kondor"]], AKDE[["X2013.Manggo"]], AKDE[["X2013.Mindy"]], AKDE[["X2013.Sidony"]], AKDE[["X2013.Talia"]])
+Fem_CDE_2013<-encounter(Female_2013)
+
+Female_2014<-list(AKDE[["X2014.Cinta"]], AKDE[["X2014.Desy"]], AKDE[["X2014.Inul"]], AKDE[["X2014.Jinak"]], AKDE[["X2014.Juni"]], AKDE[["X2014.Kerry"]], AKDE[["X2014.Kondor"]], AKDE[["X2014.Manggo"]], AKDE[["X2014.Mindy"]], AKDE[["X2014.Sidony"]])
+Fem_CDE_2014<-encounter(Female_2014)
+
+Female_2015<-list(AKDE[["X2015.Tina"]], AKDE[["X2015.Pinky"]], AKDE[["X2015.Kondor"]], AKDE[["X2015.Kerry"]], AKDE[["X2015.Juni"]], AKDE[["X2015.Jinak"]], AKDE[["X2015.Inul"]], AKDE[["X2015.Desy"]], AKDE[["X2015.Cinta"]])
+Fem_CDE_2015<-encounter(Female_2015)
