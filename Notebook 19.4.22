@@ -1,0 +1,135 @@
+Working on long call project - need to create new rasters for distance to competitors
+
+working on genetics paper - code for plots below
+
+setwd("C:/Users/lrlab/Downloads/Saved_2022-04-05_21-31-51.694")
+data<-readRDS(file="data.rds")
+models<-readRDS(file="model_list_dt.rds")
+tel<-readRDS(file="input_telemetry.rds")
+
+
+library(ctmm)
+library(ctmmweb)
+library(data.table)
+library(dplyr)
+
+
+model_summary <- summary_tried_models(models)
+
+View(models)
+# this read from a .rds from saved progress file from ctmmweb shiny application
+#this is so that the original data could be subsetted by year
+tel <- readRDS("input_telemetry.rds")
+summary(tel)
+# one line to try models. The result is a nested list of CTMM models
+model_try <- par_try_models(tel)
+saveRDS(model_try, file="model_try.rds")
+model_try<-readRDS(file="model_try.rds")
+# summary models to find the best
+model_summary <- summary_tried_models(model_try)
+model_list <- flatten_models(model_try)
+names(model_list)
+
+
+(names_subset <- model_summary[(model_no %in% c(1,8, 11,15,19, 25, 29, 33, 37, 41, 47, 54,60,64, 70, 74 )),
+                             .(model_name, identity)])
+model_list_sub2 <- model_list[names_subset$model_name]
+
+# calculate home range with ctmm::akde. 
+tele_list_subset <- tel[names_subset$identity]
+hrange_list_sub2 <- akde(tel, CTMM = model_list_sub2)
+
+# name by model name
+names(hrange_list_sub2) <- names(model_list_sub2)
+# summary of each home range. There is no summary table function here because we borrowed the model table in app to make the home range summay table. To reproduce that in functions need model table/model_try_res and the selection as parameters, which will be quite awkward. If there is a strong request from users, a summary table function can be added.
+lapply(hrange_list_sub2, summary)
+
+
+####Then convert the ctmm formats into formats that gpplot can handle
+library(ggmap)
+##Bobo1
+projection_Bobo1 <- hrange_list_sub2$`1. Bobo_subset_16 - OUF anisotropic`@info
+
+
+iso <- SpatialPolygonsDataFrame.UD(hrange_list_sub2$`1. Bobo_subset_16 - OUF anisotropic`, proj4string=CRS(projection))
+iso <- spTransform(iso,CRS("+proj=longlat"))
+
+iso <- fortify(iso)
+
+
+ud <- raster(hrange_list_sub2$`1. Bobo_subset_16 - OUF anisotropic`) # any raster you want to plot
+rtp <- rasterToPolygons(ud)
+rtp <- spTransform(rtp,CRS("+proj=longlat"))
+rtp@data$id <- 1:nrow(rtp@data)   # add id column for join
+
+rtpFort <- fortify(rtp, data = rtp@data)
+rtpFortMer <- merge(rtpFort, rtp@data, by.x = 'id', by.y = 'id')  # join data
+##Inul1
+projection_Inul1 <- hrange_list_sub2$`15. Inul_subset_9 - OUF anisotropic`@info
+
+
+iso_inul1 <- SpatialPolygonsDataFrame.UD(hrange_list_sub2$`15. Inul_subset_9 - OUF anisotropic`, proj4string=CRS(projection))
+iso_inul1 <- spTransform(iso_inul1,CRS("+proj=longlat"))
+
+iso_inul1 <- fortify(iso_inul1)
+
+
+ud_inul1 <- raster(hrange_list_sub2$`15. Inul_subset_9 - OUF anisotropic`) # any raster you want to plot
+rtp_inul1 <- rasterToPolygons(ud_inul1)
+rtp_inul1 <- spTransform(rtp_inul1,CRS("+proj=longlat"))
+rtp_inul1@data$id <- 1:nrow(rtp_inul1@data)   # add id column for join
+
+rtp_inul1Fort <- fortify(rtp_inul1, data = rtp_inul1@data)
+rtp_inul1FortMer <- merge(rtp_inul1Fort, rtp_inul1@data, by.x = 'id', by.y = 'id')  # join data
+
+###devtools::install_github("eliocamp/ggnewscale")
+library(ggnewscale)
+reds<-RColorBrewer::brewer.pal(6, name="Reds")
+blues<-RColorBrewer::brewer.pal(6, name="Blues")
+red3<-RColorBrewer::brewer.pal(3, name="Reds")
+blue3<-RColorBrewer::brewer.pal(3, name="Blues")
+#Get a map centered around the data (set the zoom as appropriate)
+basemap <- get_map(location = c(lon = 114.44524, lat = -2.160),zoom = 14, scale = 2, maptype ='satellite', source=c("google"))
+
+
+# plotting the map with the HR and locations on it
+BoboInul1<-ggmap(basemap) +
+  #This controls Inul's UD
+  geom_polygon(data = rtp_inul1FortMer, 
+               aes(x = long, y = lat, group = group, alpha = layer),
+               fill = "#FF0000", size = 1) +
+  scale_alpha_continuous(range = c(1,0)) +
+  #This controls the contours
+  geom_path(data = iso_inul1, aes(x = long,y=lat, group = group, colour = group, lty=group)) +
+  scale_color_manual(values=reds) +
+  geom_point(data = tel$Inul_subset_9, aes(x = longitude, y = latitude), fill = "#FF0000", alpha = 0.8, size = 0.3, shape = 21)+
+   #This controls Bobo's UD
+
+  ggnewscale::new_scale("fill") +geom_polygon(data = rtpFortMer, 
+               aes(x = long, y = lat, group = group, alpha = layer),
+               fill = "#046C9A", size = 1)+
+  new_scale("alpha")+
+  scale_alpha_continuous(range = c(1,0)) + 
+  #This controls the contours
+  ggnewscale::new_scale_color()+new_scale("linetype")+
+  geom_path(data = iso, aes(x = long,y=lat, group = group, colour =group, lty=group))+ 
+  scale_color_manual(values=blues)+
+  ggnewscale::new_scale_fill()+
+  geom_point(data = tel$Bobo_subset_16, aes(x = longitude, y = latitude), fill = "royalblue1", alpha = 0.8, size = 0.3, shape = 21)+
+  theme(legend.position="none")+
+  
+  #Rename the axes
+  labs(x = "Longitude")+
+  labs(y = "Latitude")+
+  
+  #Set
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position="none",
+        axis.title.y=element_text(family = "serif", size = 12),
+        axis.title.x=element_text(family = "serif", size = 12),
+        axis.text.y=element_text(family = "serif"),
+        axis.text.x=element_text(family = "serif"))
+  
+BoboInul1
+
