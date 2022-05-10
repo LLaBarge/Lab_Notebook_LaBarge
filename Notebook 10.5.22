@@ -1,0 +1,50 @@
+Added coordinates to long call heard data 
+This was done by matching observations with the nearest timestamp
+The dataset contains many missing locations but this is correct because some periods are truly missing from the GPS data
+Additionally several individuals within the LCH dataset are not followed e.g. unknowns, so these also are misssing coordinates
+
+library(readr)
+LC_PAM_response<- read_csv("C:/Users/lrlab/OneDrive/Desktop/LC_Project/LC_PAMsystem_RAW_for_R.csv")
+Tuanan_AdultOrang <- read_csv("Tuanan_AdultOrang.csv")
+LC_heard<- read_csv("C:/Users/lrlab/OneDrive/Desktop/LC_Project/LongCalls_Heard_masterfile_2003_2018.csv")
+
+# all these observations together could go into spatial model of where they respond
+# Follow data can be used for whether the distance and whether individuals are in affects
+# using PAM system, look at the latency to respond using survival model
+# using long calls from PAM system match to when individuals were followed from long call heard
+# to get distance and to get individual who called
+
+# get dates into matching format so coordinates can be matched
+PTS <- as.data.frame(Tuanan_AdultOrang)
+LCH <- as.data.frame(LC_heard)
+head(PTS)
+PTS$Timestamp<-as.POSIXct(PTS$date)
+attr(PTS$Timestamp, "tzone") <- "Asia/Pontianak"
+LCH$Timestamp<-as.POSIXct(LCH$Timestamp)
+attr(LCH$Timestamp, "tzone") <- "Asia/Pontianak"
+PTS$D<-as.numeric(as.POSIXct(PTS$Timestamp))
+LCH$D<-as.numeric(as.POSIXct(LCH$Timestamp))
+
+#correct names that have typos
+head(LCH)
+LCH$ID<-LCH$`Name Focal`
+unique(LCH$ID)
+LCH$ID <- gsub("BOBO", "Bobo", LCH$ID)
+LCH$ID <- gsub("CHAZ", "Chaz", LCH$ID)
+PTS$ID<-PTS$id
+unique(PTS$ID)
+
+# join by the nearest GPS point timestamp
+library(data.table)
+setDT(LCH)[, join_date := D]
+setDT(PTS)[, join_date := D]
+# rolling join
+LCH_GPS_added<-PTS[LCH, on = .(ID, join_date), roll = "nearest", allow.cartesian = TRUE]
+
+#check that geographic coordinates are added
+View(LCH_GPS_added)
+
+# there are many missing points, but this is correct because many
+#individuals are not represented in the long calling data
+#write.csv
+write.csv(LCH_GPS_added,"LCH_GPS_added.csv")
